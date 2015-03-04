@@ -24,6 +24,29 @@ npm install webpages
 
 ## Usage
 
+First, a brief overview, then the minimal example!
+
+### Overview
+
+You write *page prototypes*, which are just javascript objects with the following
+lifecycle methods:
+
+- read: Get data from APIs, save it in page state.
+- recover: Extract data from the DOM.
+- render: Render the data to the DOM.
+- run: Attach DOM event listeners.
+- write: Send user data to APIs.
+
+Then, you write a layout page prototype, whose render method returns an html string
+that includes `<head>`, `<link>`, etc. Its render method overwrites the render
+method of your regular page prototypes for the server.
+
+Finally, you match urls to page prototypes in a routes file, and tie it all
+together with a webpages() instance. Bundling, AJAX, server-side rendering,
+and batteries included!
+
+### Example
+
 A simple example describes it best, so here is the minimal set of
 files we need to get going.
 
