@@ -122,8 +122,8 @@ var Page = {
 module.exports = Page;
 ```
 
-The module `user.js` exports a complete page prototype, grabbing data
-from an API server using [SuperAgent](http://visionmedia.github.io/superagent/))
+The module `user-page.js` exports a complete page prototype, grabbing data
+from an API server using [SuperAgent](http://visionmedia.github.io/superagent/)
 (which works on the client and server--important!)
 and preparing the state for rendering.
 
@@ -194,14 +194,6 @@ pages.on('bundled', function() {
 });
 ```
 
-
-- writing "isomorphic" interfaces to APIs (this is often accomplished via an
-  existing HTTP request
-  library... ahem... [SuperAgent](http://visionmedia.github.io/superagent/))
-- Find or build a HTML/DOM rendering and diffing
-  library... ahem... [React.js](http://facebook.github.io/react/)
-- Hook them together using webpages.js.
-
 ## Documentation
 
 ### webpages(opts)
@@ -213,6 +205,8 @@ setup methods.
 For example:
 
 ```js
+var webpages = require('webpages');
+
 var pages = webpages({
   basedir: __dirname,
   routes: './routes',
@@ -265,7 +259,11 @@ for rendering on the server.
 
 ### pages
 
-The following methods are available on the instance returned by `webpages(opts)`.
+The following methods are available on a webpages instance:
+
+```js
+var pages = webpages(opts);
+```
 
 #### pages.set(name, page)
 
@@ -278,7 +276,7 @@ The following methods are available on the instance returned by `webpages(opts)`
   - required: yes
 
 Register page logic with a route. You need to register by way of a module
-path so that Pages can bundle your javascript.
+path so that webpages can bundle your javascript.
 
 #### pages.fn(name, fn)
 
@@ -288,7 +286,7 @@ path so that Pages can bundle your javascript.
     a callback. Pass error and result as first and second arg, respectively,
     to `done`.
 
-Register a server function (or remote procedure) with the Pages instance.  A
+Register a server function (or remote procedure) with the webpages instance.  A
 server function is callable within a [page's](#page) read/write methods and
 runs on only the server (when called in the browser, an AJAX request handles
 the function call for you, being careful to send and check a CSRF token
@@ -693,7 +691,7 @@ for reuse in the browser.
 
 ## Session
 
-This is passed in to the read/write lifecycle methods on the pages object. Use it to
+This is passed in to the read/write lifecycle methods by way of the pages object. Use it to
 set small chunks of data in cookies that are persisted between pages.
 There are two types of state that can be set to a session, public and secret. Public
 state is available on `pages.session.state` whereas secret state is only available on
