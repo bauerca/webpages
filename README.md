@@ -158,7 +158,7 @@ var UserPage = merge(Page, {
   }
 });
 
-module.exports = Page;
+module.exports = UserPage;
 ```
 
 Finally, you serve the app using Express, and optionally use the built-in
