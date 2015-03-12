@@ -1,24 +1,13 @@
 var serveStatic = require('serve-static');
 var Pages = require('../../..');
+var serveAjax = require('../serve-ajax');
 
 module.exports = function(app, done) {
-  var pages = Pages({
+  return serveAjax({
+    app: app,
     basedir: __dirname,
-    routes: 'routes',
-    layout: 'layout'
-  });
-
-  pages.set('run', './run');
-
-  pages.bundle({
-    output: __dirname + '/bundles',
-    prefix: '/'
-  });
-
-  app.use(pages);
-  app.use(serveStatic(__dirname + '/bundles'));
-
-  pages.on('bundled', function() {
-    done();
-  });
+    pages: {
+      run: './run'
+    }
+  }, done);
 };

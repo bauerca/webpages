@@ -7,27 +7,23 @@ var morgan = require('morgan');
 var http = require('http');
 var host = require('osh-test-host');
 var iso = require('osh-iso-test');
-
+var toArray = require('stream-to-array');
 
 describe('webpages', function() {
   describe('server', function() {
-    it('should bundle', function(done) {
-      this.timeout(10.e3);
-      var pages = webpages({
-        basedir: __dirname + '/bundling',
-        routes: './routes',
-        layout: './layout'
-      });
-
-      pages.set('home', './home-page');
-      pages.set('help', './help-page');
-
-      pages.bundle({output: __dirname + '/bundles'});
-      pages.on('bundled', function(entryInfo) {
-        //console.log(JSON.stringify(entryInfo, null, 2));
-        expect(entryInfo.home.length).to.be(4);
-        expect(entryInfo.help.length).to.be(4);
-        done();
+    describe('entries()', function() {
+      it('should return a stream', function(done) {
+        var pages = webpages({
+          basedir: __dirname + '/bundling',
+          routes: './routes',
+          layout: './layout'
+        });
+        pages.set('home', './home-page');
+        pages.set('help', './help-page');
+        toArray(pages.entries(), function(err, arr) {
+          expect(arr.length).to.be(2);
+          done(err);
+        });
       });
     });
 
@@ -137,7 +133,6 @@ describe('webpages', function() {
   });
 
   describe('iso', function() {
-    
     it('should pass all tests', function(done) {
       this.timeout(0);
       iso({
@@ -146,7 +141,6 @@ describe('webpages', function() {
         manual: true
       }, done);
     });
-
   });
 
 //    //  Each name is a subdirectory of the test directory

@@ -1,25 +1,12 @@
-var serveStatic = require('serve-static');
-var webpages = require('../../..');
+var serveAjax = require('../serve-ajax');
 
 module.exports = function(app, done) {
-  var pages = webpages({
+  return serveAjax({
+    app: app,
     basedir: __dirname,
-    routes: 'routes',
-    layout: 'layout'
-  });
-
-  pages.set('view1', './view1');
-  pages.set('view2', './view2');
-
-  pages.bundle({
-    output: __dirname + '/bundles',
-    prefix: '/'
-  });
-
-  app.use(pages);
-  app.use(serveStatic(__dirname + '/bundles'));
-
-  pages.on('bundled', function() {
-    done();
-  });
+    pages: {
+      view1: './view1',
+      view2: './view2'
+    }
+  }, done);
 };
