@@ -12,9 +12,9 @@ all through a single javascript API.
 
 Features include:
 
-- Module bundling and client-side loading (via [dynapack](https://github.com/bauerca/dynapack))
 - Automatic AJAX for both `<a/>` and `<form/>` actions
 - Session management and CSRF protection
+- Easy integration with [dynapack](https://github.com/bauerca/dynapack)
 
 ## Installation
 
@@ -170,26 +170,30 @@ enable client-side AJAX rendering and navigation. The following is
 var express = require('express');
 var serveStatic = require('serve-static');
 var webpages = require('webpages');
+var dynapack = require('dynapack');
+var dest = require('vinyl-fs').dest;
 
+var __bundles = __dirname + '/bundles';
+
+var pack = dynapack({prefix: '/js/'});
 var app = express();
 
 var pages = webpages({
   basedir: __dirname, // all paths are relative to basedir
   routes: './routes',
-  layout: './layout'
+  layout: './layout',
+  scripts: __bundles
 });
 
 pages.set('user', './user-page');
 
-pages.bundle({
-  output: './bundles',
-  prefix: '/js/'
-});
+pages.entries().pipe(pack).pipe(dest(__bundles));
+pack.scripts().pipe(dest(__bundles));
 
 app.use(pages);
-app.use('/js', serveStatic(__dirname + '/bundles'));
+app.use('/js', serveStatic(__bundles));
 
-pages.on('bundled', function() {
+pack.on('end', function() {
   app.listen(3333);
 });
 ```
@@ -210,7 +214,8 @@ var webpages = require('webpages');
 var pages = webpages({
   basedir: __dirname,
   routes: './routes',
-  layout: './layout'
+  layout: './layout',
+  scripts: __dirname + '/bundles'
 });
 ```
 
@@ -256,6 +261,21 @@ module.exports = {
 Path to a module that exports a page prototype with a render method
 that returns a string of HTML. This object is merged into all page prototypes
 for rendering on the server.
+
+#### opts.scripts
+
+Path to the directory that contains one html file for each route/page. Each
+html file should contain the scripts you want to load for the corresponding
+page; webpages.js places the contents of this file directly in the rendered
+page HTML at the base of the body element.
+
+Webpages.js relies on a naming scheme to locate each page's scripts file.  For
+example, if you registered the route names `"home"` and `"user"`, then you
+should have the files `"home.main.html"` and `"user.main.html"` in the scripts
+directory.
+
+This behavior allows webpages.js to work almost seamlessly with dynapack
+and gulp.js.
 
 ### pages
 
@@ -326,35 +346,33 @@ pages.fn('refreshAccessToken', function(opts, done) {
 ```
 
 
-#### pages.bundle(opts)
+#### pages.entries()
 
-- options
-  - `output`: Output directory for bundles. Can be relative to basedir.
-    - type: String
-    - default: `'/bundles'`
-  - `prefix`: Prefix for script urls. If serving scripts from the same
-    express app that houses the pages instance, this value should match
-    the mount path (with a trailing slash).
-
-Bundle up javascript using [Dynapack](https://github.com/bauerca/dynapack).
-Options are passed to Dynapack after resolving any relative paths.
-
-When bundling has finished, the `'bundled'` event is fired on the pages
-instance.
-
-Example:
+Returns a readable stream that outputs an "entry" javascript file (in
+[vinyl File format](https://github.com/wearefractal/vinyl)) for each
+route/page in your app. These files were designed for piping into
+[Dynapack](https://github.com/bauerca/dynapack) in a gulp.js workflow.
 
 ```js
-pages.bundle({
-  output: __dirname + '/bundles',
-  prefix: '/js/'
+var webpages = require('webpages');
+var dynapack = require('dynapack');
+var dest = require('vinyl-fs').dest;
+var __scripts = __dirname + '/js';
+
+var pages = webpages({
+  scripts: __scripts 
+  // ...
 });
 
-app.use(pages);
-app.use('/js', serveStatic(__dirname + '/bundles'));
+var pack = dynapack();
 
-pages.on('bundled', function() {
-  app.listen(3333);
+pages.entries().pipe(pack).pipe(dest(__scripts));
+pack.scripts().pipe(dest(__scripts));
+
+pack.on('end', function() {
+  var app = express();
+  app.use(pages);
+  app.listen(8080);
 });
 ```
 

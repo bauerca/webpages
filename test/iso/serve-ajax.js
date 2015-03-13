@@ -7,13 +7,14 @@ var serveStatic = require('serve-static');
 var path = require('path');
 
 function serveAjax(opts, done) {
+  var bundleDir = path.join(opts.basedir, 'bundles');
+
   var pages = webpages({
     basedir: opts.basedir,
     routes: 'routes',
-    layout: 'layout'
+    layout: 'layout',
+    scripts: bundleDir
   });
-
-  var bundleDir = path.join(opts.basedir, 'bundles');
 
   forEach(opts.pages, function(page, name) {
     pages.set(name, page);
@@ -27,24 +28,17 @@ function serveAjax(opts, done) {
   opts.app.use(serveStatic(bundleDir));
 
   var pack = dynapack();
+  var scripts = pack.scripts();
+  var entries = pages.entries();
 
-  pack.on('end', done);
+  scripts.on('end', done);
 
-  pack.on('bundled', function(bundles) {
-    var scripts = mapValues(
-      bundles.entries,
-      function(entryBundles) {
-        return entryBundles.map(function(bundle) {
-          return '/' + bundle;
-        });
-      }
-    );
-    pages.setScripts(scripts);
+  pack.on('end', function() {
+    scripts.end();
   });
 
-  var entries = pages.entries();
+  scripts.pipe(dest(bundleDir));
   entries.pipe(pack).pipe(dest(bundleDir));
-  //entries.resume();
 }
 
 module.exports = serveAjax;
