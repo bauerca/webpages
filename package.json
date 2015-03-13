@@ -1,6 +1,6 @@
 {
   "name": "webpages",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A framework for API-consuming web apps that unifies AJAX and graceful degradation.",
   "main": "index.js",
   "browser": {
